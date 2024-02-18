@@ -1,0 +1,46 @@
+version: "3.8"
+services: 
+  # Django app
+  backend_auth:
+   container_name: backend_auth_ms
+   build: .
+   volumes: 
+    - .:/app
+   ports:
+    - "8000:8000"
+   depends_on:
+    - db
+    - redis 
+
+  # Kafla events
+  queue_auth:  
+    build: .
+    command: >
+      sh -c "python consumer.py"
+    depends_on:
+      - db
+
+  # db (postgres)
+  db: 
+   image: postgres
+   container_name: django_auth_api_postgresql
+   restart: always
+   environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: auth_db
+   ports:
+      - "5432:5432"
+   volumes:
+     - .dbdata:/var/lib/postgresql
+  
+  # Redis
+  redis:
+    image: redis
+    container_name: django_auth_api_redis
+    ports:
+      - "6379:6379"
+
+
+
+  
